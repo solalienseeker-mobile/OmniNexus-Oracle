@@ -1,0 +1,5 @@
+{
+  "name": "OmniNexus Multi-Chain Oracle",
+  "description": "Autonomous Multi-Chain Command Center featuring Ethereum and Solana integration, Chainlink price oracles, and gasless transactions via Biconomy.",
+  "requestFramePermissions": []
+}
