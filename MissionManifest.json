@@ -1,0 +1,24 @@
+{
+  "missionId": "nexus-prime-v5-infinity-earning-matrix",
+  "name": "Infinity Earning Matrix",
+  "description": "Build a perpetual value accrual DeFi protocol with cross-chain gasless flows and automated treasury reinvestment.",
+  "theme": "Solana/private-stablecoin/gasless",
+  "budget": {
+    "maxGasFeeLamports": 10000000,
+    "maxTransactions": 500,
+    "maxTotalSpentSol": 0.5
+  },
+  "environment": {
+    "network": "devnet",
+    "treasuryWallet": "8z5D9jvzQgRwkEBqa9HzL3D1riFkHZ3i1UrxRTKXgEF9",
+    "missionPrivateKeyVar": "MISSION_PRIVATE_KEY"
+  },
+  "objectives": [
+    "Deploy core Solana program and EVM bridge manager",
+    "On-chain stablecoin collateralized by dynamic yield assets",
+    "Auto-rebalancing fee flow into treasury yield pools",
+    "Live UI dashboard with performance metrics and voting governance"
+  ],
+  "personaPipeline": ["Oracle-7", "Architect-TS", "Fabricator-CLI", "Warden-AI"],
+  "status": "authorized"
+}

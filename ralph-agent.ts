@@ -1,5 +1,6 @@
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { storage } from "./storage";
+import { runOllamaPrompt } from "./services/ollamaService";
 
 // Agent Configuration using stored credentials
 const CONFIG = {
@@ -513,6 +514,30 @@ class RalphAgentBot {
       };
     } catch (e) {
       return { success: false, action: "Reclaim operation failed", profit: 0, details: { error: String(e) } };
+    }
+  }
+
+  async selfLearn(guide?: string): Promise<{ success: boolean; insight: string; raw: any }> {
+    const recentLogs = this.state.logs.slice(0, 20).map(log => `${new Date(log.timestamp).toISOString()} [${log.level}] ${log.message}`).join("\n");
+    const mission = guide || "Develop a focused improvement for the mission architecture: risk, gas fees, strategy parameters, and security hardening.";
+
+    const prompt = `You are Nexus Prime v5.0, an autonomous Genesis Engine. Use logs and metrics below to self-improve.\n\nMission: Infinity Earning Matrix\n\nRecent Logs:\n${recentLogs || "<no logs available>"}\n\nMetrics:\n` +
+      `- uptime: ${this.state.metrics.uptime}\n` +
+      `- cyclesPerHour: ${this.state.metrics.cyclesPerHour.toFixed(2)}\n` +
+      `- successRate: ${this.state.metrics.successRate.toFixed(2)}\n` +
+      `- avgCycleTime: ${this.state.metrics.avgCycleTime.toFixed(2)}\n` +
+      `- totalEarnings: ${this.state.totalEarnings}\n` +
+      `- totalTransactions: ${this.state.totalTransactions}\n\n` +
+      `Instruction: ${mission}`;
+
+    try {
+      const result = await runOllamaPrompt(prompt);
+      const insight = result.completion.trim();
+      await this.log("success", "Self-learning insight generated", { insight, source: "ollama", guidance: mission });
+      return { success: true, insight, raw: result.metadata };
+    } catch (error) {
+      await this.log("error", "Self-learning failed", { error: String(error) });
+      return { success: false, insight: "Self-learning failed", raw: error };
     }
   }
 

@@ -266,6 +266,16 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/agent/selflearn", async (req, res) => {
+    try {
+      const { guidance } = req.body;
+      const result = await ralphAgent.selfLearn(guidance);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: "Failed to run self learning", details: err?.message || String(err) });
+    }
+  });
+
   app.get("/api/agent/logs", async (req, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 100;

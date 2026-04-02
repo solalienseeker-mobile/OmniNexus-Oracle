@@ -7,7 +7,10 @@
     "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "agent:start": "curl -s -X POST http://localhost:3000/api/agent/start && echo",
+    "agent:status": "curl -s http://localhost:3000/api/agent/status && echo",
+    "mission:init": "cat MissionManifest.json && echo && curl -s -X POST http://localhost:3000/api/agent/start && echo"
   },
   "dependencies": {
     "@biconomy/account": "^4.5.7",

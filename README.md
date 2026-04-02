@@ -57,6 +57,49 @@ OmniNexus Empire is a decentralized, autonomous empire-building simulation power
    npm run dev
    ```
 
+## 🧩 Colosseum Copilot Skill Integration (Optional)
+
+1. **Set up PAT and API base** (in shell, then add to `.bashrc`/`.zshrc`):
+   ```bash
+   export COLOSSEUM_COPILOT_API_BASE="https://copilot.colosseum.com/api/v1"
+   export COLOSSEUM_COPILOT_PAT="your-token-here"
+   ```
+
+2. **Install Colosseum skill**:
+   ```bash
+   npx skills add ColosseumOrg/colosseum-copilot --scope project --yes
+   npx skills list
+   ```
+
+3. **Verify auth**:
+   ```bash
+   curl "$COLOSSEUM_COPILOT_API_BASE/status" \
+     -H "Authorization: Bearer $COLOSSEUM_COPILOT_PAT"
+   ```
+   Expected JSON: `{ "authenticated": true, "expiresAt": "...", "scope": "..." }`
+
+4. **Sample query**:
+   Ask the assistant:
+   - "What Solana hackathon projects have worked on gasless transactions?"
+   - "I want to build a privacy-preserving stablecoin on Solana. Vet this idea."
+
+## 🧠 Autonomous Self-Learning (Ollama)
+
+1. Set Ollama host and model (cloud or local):
+   ```bash
+   export OLLAMA_HOST="https://your-ollama-free-cloud-host"
+   export OLLAMA_MODEL="llama2"
+   ```
+
+2. Call self-learn endpoint:
+   ```bash
+   curl -X POST http://localhost:3000/api/agent/selflearn \
+     -H "Content-Type: application/json" \
+     -d '{"guidance": "Improve fee collection and risk mitigation"}'
+   ```
+
+3. Observe returned insight and confirm logs in `/api/agent/logs`.
+
 ## 📜 High-Level Prompt (The Developer Vision)
 
 "Build a system that doesn't just respond, but *exists*. OmniNexus is an experiment in persistent agentic state. By combining the deterministic nature of blockchain with the probabilistic reasoning of LLMs, we've created an entity that manages its own treasury, spawns its own assets, and evolves its own strategy. It is the first step towards a truly autonomous on-chain economy."
