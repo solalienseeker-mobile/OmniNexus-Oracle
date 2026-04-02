@@ -57,8 +57,8 @@ export function buildUrl(path: string, params?: Record<string, string | number>)
   return url;
 }
 
-const ALCHEMY_URL = `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY || 'a-Zok7-jnXTd0r5d2pxrf'}`;
-const ethProvider = new ethers.JsonRpcProvider(ALCHEMY_URL);
+const ALCHEMY_URL = process.env.ALCHEMY_API_KEY ? `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` : null;
+const ethProvider = ALCHEMY_URL ? new ethers.JsonRpcProvider(ALCHEMY_URL) : null;
 
 // Chainlink Aggregator Interface
 const AGGREGATOR_ABI = [
@@ -136,6 +136,10 @@ export async function registerRoutes(
 
   app.get("/api/blockchain/stats", async (req, res) => {
     try {
+      if (!ethProvider) {
+        return res.status(503).json({ error: "Alchemy API not configured" });
+      }
+      
       const ethBalance = await ethProvider.getBalance('0xf2a435c03636826b2fa842474a1f23b87ebda580');
       const solBalance = await getTreasuryBalance();
       

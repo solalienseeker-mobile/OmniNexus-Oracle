@@ -2,23 +2,31 @@ import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { storage } from "./storage";
 import { runOllamaPrompt } from "./services/ollamaService";
 
-// Agent Configuration using stored credentials
-const CONFIG = {
-  helius: {
-    mainnet: process.env.HELIUS_HTTP_URL || `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`,
-    devnet: `https://devnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`,
-    parseTransactions: process.env.HELIUS_SOLANA_PARSE_TRANSACTION,
-  },
-  alchemy: {
-    solana: process.env.HTTP_URL_SOL,
-    apiKey: process.env.ALCHEMY_API_KEY,
-  },
-  moralis: {
-    apiKey: process.env.MORALIS_API_KEY,
-  },
-  treasury: process.env.SOLANA_TREASURY || "8z5D9jvzQgRwkEBqa9HzL3D1riFkHZ3i1UrxRTKXgEF9",
-  network: "devnet" as "devnet" | "mainnet", // Start with devnet for safety
-};
+// Environment validation
+function getConfig() {
+  const heliusKey = process.env.HELIUS_API_KEY;
+  const heliusUrl = process.env.HELIUS_HTTP_URL;
+  
+  return {
+    helius: {
+      mainnet: heliusUrl || (heliusKey ? `https://mainnet.helius-rpc.com/?api-key=${heliusKey}` : null),
+      devnet: heliusKey ? `https://devnet.helius-rpc.com/?api-key=${heliusKey}` : null,
+      parseTransactions: process.env.HELIUS_SOLANA_PARSE_TRANSACTION,
+      apiKey: heliusKey,
+    },
+    alchemy: {
+      solana: process.env.HTTP_URL_SOL,
+      apiKey: process.env.ALCHEMY_API_KEY,
+    },
+    moralis: {
+      apiKey: process.env.MORALIS_API_KEY,
+    },
+    treasury: process.env.SOLANA_TREASURY || "8z5D9jvzQgRwkEBqa9HzL3D1riFkHZ3i1UrxRTKXgEF9",
+    network: "devnet" as "devnet" | "mainnet",
+  };
+}
+
+let CONFIG = getConfig();
 
 // Agent State
 interface AgentState {
@@ -215,13 +223,19 @@ class RalphAgentBot {
   private async checkRpcHealth(): Promise<void> {
     const startTime = Date.now();
     
+    // Check Helius
     try {
-      await this.connection.getSlot();
-      this.state.metrics.rpcHealth.helius = true;
-      this.state.metrics.networkLatency = Date.now() - startTime;
+      if (!CONFIG.helius.apiKey) {
+        this.state.metrics.rpcHealth.helius = false;
+        this.log("warning", "Helius RPC: No API key configured");
+      } else {
+        await this.connection.getSlot();
+        this.state.metrics.rpcHealth.helius = true;
+        this.state.metrics.networkLatency = Date.now() - startTime;
+      }
     } catch (e) {
       this.state.metrics.rpcHealth.helius = false;
-      this.log("warning", "Helius RPC health check failed");
+      this.log("warning", "Helius RPC health check failed", { error: String(e).slice(0, 100) });
     }
 
     // Check Alchemy (optional)
@@ -336,10 +350,13 @@ class RalphAgentBot {
   private async executeSignalSeek(strategy: AgentStrategy): Promise<CycleResult> {
     // Scan for cosmic signals on the network
     try {
+      if (!CONFIG.helius.apiKey) {
+        return { success: true, action: "Signal scan skipped (no Helius key)", profit: 0, details: {} };
+      }
+      
       const slot = await this.connection.getSlot();
       const blockTime = await this.connection.getBlockTime(slot);
       
-      // Simulate signal detection with real network data
       const signalStrength = Math.random() * 100;
       const cosmicAlignment = (slot % 1000) / 1000;
       
@@ -361,18 +378,21 @@ class RalphAgentBot {
         details: { slot, signalStrength },
       };
     } catch (e) {
-      return { success: false, action: "Signal scan failed", profit: 0, details: { error: String(e) } };
+      return { success: false, action: "Signal scan failed", profit: 0, details: { error: String(e).slice(0, 100) } };
     }
   }
 
   private async executeYieldFarm(strategy: AgentStrategy): Promise<CycleResult> {
     // Simulate yield farming with real treasury balance check
     try {
+      if (!CONFIG.helius.apiKey) {
+        return { success: true, action: "Yield farm skipped (no Helius key)", profit: 0, details: {} };
+      }
+      
       const treasuryPubkey = new PublicKey(CONFIG.treasury);
       const balance = await this.connection.getBalance(treasuryPubkey);
       const solBalance = balance / LAMPORTS_PER_SOL;
       
-      // Calculate yield based on network activity
       const slot = await this.connection.getSlot();
       const yieldMultiplier = 0.0001 + (slot % 100) / 100000;
       const harvest = solBalance * yieldMultiplier * Math.random();
@@ -394,7 +414,7 @@ class RalphAgentBot {
         details: { treasuryBalance: solBalance },
       };
     } catch (e) {
-      return { success: false, action: "Yield harvest failed", profit: 0, details: { error: String(e) } };
+      return { success: false, action: "Yield harvest failed", profit: 0, details: { error: String(e).slice(0, 100) } };
     }
   }
 
@@ -456,6 +476,10 @@ class RalphAgentBot {
   private async executeLiquidityMining(strategy: AgentStrategy): Promise<CycleResult> {
     // Simulate liquidity provision rewards
     try {
+      if (!CONFIG.helius.apiKey) {
+        return { success: true, action: "LP mining skipped (no Helius key)", profit: 0, details: {} };
+      }
+      
       const slot = await this.connection.getSlot();
       const epochInfo = await this.connection.getEpochInfo();
       
@@ -480,13 +504,17 @@ class RalphAgentBot {
         details: { epoch: epochInfo.epoch, epochProgress },
       };
     } catch (e) {
-      return { success: false, action: "LP mining failed", profit: 0, details: { error: String(e) } };
+      return { success: false, action: "LP mining failed", profit: 0, details: { error: String(e).slice(0, 100) } };
     }
   }
 
   private async executeReclaim(strategy: AgentStrategy): Promise<CycleResult> {
     // Logic for finding and reclaiming rent/closing programs
     try {
+      if (!CONFIG.helius.apiKey) {
+        return { success: true, action: "Reclaim skipped (no Helius key)", profit: 0, details: {} };
+      }
+      
       const treasuryPubkey = new PublicKey(CONFIG.treasury);
       
       // 1. Scan for closed accounts with rent remaining
@@ -513,7 +541,7 @@ class RalphAgentBot {
         details: { status: "No reclaimable rent found in this sector" },
       };
     } catch (e) {
-      return { success: false, action: "Reclaim operation failed", profit: 0, details: { error: String(e) } };
+      return { success: false, action: "Reclaim operation failed", profit: 0, details: { error: String(e).slice(0, 100) } };
     }
   }
 
@@ -564,7 +592,13 @@ class RalphAgentBot {
   }
 
   async switchNetwork(network: "devnet" | "mainnet"): Promise<{ success: boolean; message: string }> {
+    CONFIG = getConfig();
     const rpcUrl = network === "mainnet" ? CONFIG.helius.mainnet : CONFIG.helius.devnet;
+    
+    if (!rpcUrl) {
+      return { success: false, message: `Cannot switch to ${network}: No RPC URL configured` };
+    }
+    
     this.connection = new Connection(rpcUrl, "confirmed");
     (CONFIG as any).network = network;
     
