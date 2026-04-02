@@ -46,11 +46,23 @@ OmniNexus Empire is a decentralized, autonomous empire-building simulation power
    ```
 
 2. **Environment Variables**:
-   Configure `.env` with the following:
-   - `GEMINI_API_KEY`: For agent reasoning.
+   Copy `.env.example` to `.env` and fill in your secrets.
+   - `ETH_PRIVATE_KEY`: Ethereum signer private key (0x...)
    - `ALCHEMY_API_KEY`: For Chainlink price feeds.
-   - `HELIUS_RPC_URL`: For Solana state access.
-   - `SOLANA_PRIVATE_KEY`: For treasury operations.
+   - `HELIUS_API_KEY`: For Helius API.
+   - `HELIUS_HTTP_URL`: e.g. `https://beta.helius-rpc.com/?api-key=...`
+   - `SOLANA_PRIVATE_KEY`: Solana signer private key / keypair.
+   - `SOLANA_SIGNER_ADDRESS`: Your Solana signer address.
+   - `SOLANA_TREASURY`: Treasury wallet address.
+   - `BICONOMY_PROJECT_API`: Biconomy project API key.
+   - `BICONOMY_PROJECT_ID`: Biconomy project ID.
+   - `GEMINI_API_KEY`: For agent reasoning.
+   - `MORALIS_API_KEY`: For optional RPC fallback.
+   - `DATABASE_URL`: PostgreSQL connection string.
+
+   Important:
+   - `.env` is in `.gitignore` and should not be tracked.
+   - Commit only `.env.example` with placeholders.
 
 3. **Run Development Server**:
    ```bash
